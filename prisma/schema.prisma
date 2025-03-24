@@ -62,10 +62,10 @@ model User {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   role                  Role            @default(SUBACCOUNT_USER)
-  garageId              String?         @db.ObjectId
+  garageId              String?         
   Garage                Garage?         @relation(fields: [garageId],references: [id], onDelete: Cascade)
   Permissions           Permissions[]
-  Tickets               Ticket[]
+  Ticket               Ticket[]
   Notification          Notification[]
 
   @@index([garageId])
@@ -75,7 +75,7 @@ model Permissions {
   id                    String          @id @default(auto()) @map("_id") @db.ObjectId
   email                 String
   User                  User            @relation(fields: [email], references: [email], onDelete: Cascade)
-  subAccountId          String          @db.ObjectId
+  subAccountId          String          
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   access                Boolean
   
@@ -101,8 +101,7 @@ model Garage{
   users                 User[]
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  subAccountIDs         String[]        @db.ObjectId
-  subAccounts           SubAccount[]    @relation(fields: [subAccountIDs], references: [id])
+  subAccount            SubAccount[]
   SidebarOption         GarageSidebarOption[]
   Invitation            Invitation[]
   Notification          Notification[]
@@ -125,8 +124,8 @@ model SubAccount {
   state                 String
   country               String
   goal                  Int             @default(5)
-  garageId              String[]        @db.ObjectId
-  Garage                Garage[]        @relation(fields: [garageId], references: [id])
+  garageId              String         
+  Garage                Garage          @relation(fields: [garageId], references: [id], onDelete: Cascade)
   SidebarOption         SubAccountSidebarOption[]
   Permissions           Permissions[]
   Funnels               Funnel[]
@@ -147,11 +146,10 @@ model Tag {
   color                 String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
 
-  SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  ticketIDs             String[]        @db.ObjectId
-  Ticket                Ticket[]        @relation(fields: [ticketIDs], references: [id])
+  SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)      
+  TicketTags            TicketTag[] 
 
   @@index([subAccountId])
 }
@@ -162,7 +160,7 @@ model Pipeline {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   Lane                  Lane[]
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
 
   @@index([subAccountId])
@@ -173,7 +171,7 @@ model Lane {
   name                  String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  pipelineId            String          @db.ObjectId
+  pipelineId            String         
   Pipeline              Pipeline        @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   Tickets               Ticket[]
   order                 Int             @default(0)
@@ -186,24 +184,36 @@ model Ticket {
   name                  String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  laneId                String          @db.ObjectId
+  laneId                String         
   order                 Int             @default(0)
   Lane                  Lane            @relation(fields: [laneId], references: [id], onDelete: Cascade)
   value                 Float?
-  description           String?
-  tagIDs                String[]        @db.ObjectId
-  tags                  Tag[]           @relation(fields: [tagIDs], references: [id])
+  description           String?       
+  TicketTags            TicketTag[]         
 
-  customerId            String?         @db.ObjectId
+  customerId            String?         
   Customer              Contact?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  assignedUserId        String?         @db.ObjectId
+  assignedUserId        String?         
   Assigned              User?           @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
 
 
   @@index([laneId])
   @@index([customerId])
   @@index([assignedUserId])
+}
+
+model TicketTag {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId  String  
+  tagId     String  
+
+  Ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  Tag       Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, tagId]) // Ensures a tag isn't duplicated for a ticket
+  @@index([ticketId])
+  @@index([tagId])
 }
 
 model SubAccountSidebarOption {
@@ -213,8 +223,8 @@ model SubAccountSidebarOption {
   icon                  Icon            @default(info)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  subAccountId          String          @db.ObjectId
-  SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  subAccountId          String?          
+  SubAccount            SubAccount?      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
 
   @@index([subAccountId])
 }
@@ -227,8 +237,8 @@ enum InvitationStatus {
 
 model Invitation {
   id                    String            @id @default(auto()) @map("_id") @db.ObjectId
-  email                 String
-  garageId              String            @db.ObjectId
+  email                 String            @unique
+  garageId              String           
   Garage                Garage            @relation(fields: [garageId], references: [id], onDelete: Cascade)
   status                InvitationStatus  @default(PENDING)  
   role                  Role              @default(SUBACCOUNT_USER)
@@ -241,7 +251,7 @@ model Media {
   type                  String?
   name                  String
   link                  String          @unique
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
@@ -258,7 +268,7 @@ model Funnel {
   published             Boolean         @default(false)
   subDomainName         String?         @unique
   favicon               String?         @db.String
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   FunnelPages           FunnelPage[]
   liveProducts          String?         @default("[]")
@@ -273,7 +283,7 @@ model ClassName {
   color                 String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  funnelId              String          @db.ObjectId
+  funnelId              String         
   customData            String?         @db.String
   Funnel                Funnel          @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
@@ -290,7 +300,7 @@ model FunnelPage {
   content               String          @db.String
   order                 Int
   previewImage          String?         @db.String
-  funnelId              String          @db.ObjectId
+  funnelId              String         
   Funnel                Funnel          @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
   @@index([funnelId])
@@ -301,7 +311,7 @@ model GarageSidebarOption {
   name                  String          @default("Menu")
   link                  String          @default("#")
   icon                  Icon            @default(info)
-  garageId              String          @db.ObjectId
+  garageId              String         
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   Garage                Garage      @relation(fields: [garageId], references: [id], onDelete: Cascade)
@@ -319,7 +329,7 @@ model Trigger {
   type                  TriggerTypes
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   Automations           Automation[]
 
@@ -331,10 +341,10 @@ model Automation {
   name                  String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  triggerId             String?         @db.ObjectId
+  triggerId             String?        
   published             Boolean         @default(false)
   Trigger               Trigger?        @relation(fields: [triggerId], references: [id], onDelete: Cascade)
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   Action                Action[]
   AutomationInstance    AutomationInstance[]
@@ -349,7 +359,7 @@ model Contact {
   email                 String
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  subAccountId          String          @db.ObjectId
+  subAccountId          String         
   SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   Ticket                Ticket[]
 
@@ -360,7 +370,7 @@ model AutomationInstance {
   id                    String          @id @default(auto()) @map("_id") @db.ObjectId
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  automationId          String          @db.ObjectId
+  automationId          String         
   Automation            Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   active                Boolean         @default(false)
 
@@ -377,7 +387,7 @@ model Action {
   type                  ActionType
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  automationId          String          @db.ObjectId
+  automationId          String         
   order                 Int
   Automation            Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   laneId                String          @default("0")
@@ -388,9 +398,9 @@ model Action {
 model Notification {
   id                    String          @id @default(auto()) @map("_id") @db.ObjectId
   notification          String
-  garageId              String          @db.ObjectId
-  subAccountId          String?         @db.ObjectId
-  userId                String          @db.ObjectId
+  garageId              String         
+  subAccountId          String?        
+  userId                String         
 
   User                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   Garage                Garage          @relation(fields: [garageId], references: [id], onDelete: Cascade)
@@ -422,7 +432,7 @@ model Subscription {
   currentPeriodEndDate  DateTime
   subscriptionId        String          @unique
 
-  garageId              String?         @db.ObjectId @unique
+  garageId              String?         @unique
   Garage                Garage?         @relation(fields: [garageId], references: [id])
 
   @@index([customerId])
@@ -435,7 +445,7 @@ model AddOns {
   updatedAt             DateTime        @updatedAt
   active                Boolean         @default(false)
   priceId               String          @unique
-  garageId              String?         @db.ObjectId
+  garageId              String?        
   Garage                Garage?          @relation(fields: [garageId], references: [id])
 
   @@index([garageId])
