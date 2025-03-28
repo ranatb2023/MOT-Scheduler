@@ -4,7 +4,7 @@ import { currentUser } from "@clerk/nextjs/server"
 import { db } from "./db"
 import { User } from "@prisma/client"
 import { redirect } from "next/navigation"
-import { clerkClient } from "@clerk/nextjs"
+import { clerkClient } from "@clerk/clerk-sdk-node"
 
 export const getAuthUserDetails = async () => {
     const user = await currentUser()
@@ -20,7 +20,7 @@ export const getAuthUserDetails = async () => {
             Garage: {
                 include: {
                     SidebarOption: true,
-                    subAccounts: {
+                    subAccount: {
                         include: {
                             SidebarOption: true,
                         },
@@ -48,7 +48,7 @@ export const saveActivityLogsNotification = async ({
         const response = await db.user.findFirst({
             where: {
                 Garage: {
-                    subAccounts: {
+                    subAccount: {
                         some: { id: subaccountId },
                     },
                 },

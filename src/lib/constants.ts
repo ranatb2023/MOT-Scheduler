@@ -39,7 +39,7 @@ export const pricingCards = [
   },
   {
     title: 'Unlimited Saas',
-    description: 'The ultimate agency kit',
+    description: 'The ultimate garage kit',
     price: '$199',
     duration: 'month',
     highlight: 'Key features',
@@ -48,7 +48,7 @@ export const pricingCards = [
   },
   {
     title: 'Basic',
-    description: 'For serious agency owners',
+    description: 'For serious garage owners',
     price: '$49',
     duration: 'month',
     highlight: 'Everything in Starter, plus',
