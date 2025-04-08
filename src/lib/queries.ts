@@ -2,7 +2,7 @@
 
 import { currentUser } from "@clerk/nextjs/server"
 import { db } from "./db"
-import { User } from "@prisma/client"
+import { Garage, User } from "@prisma/client"
 import { redirect } from "next/navigation"
 import { clerkClient } from "@clerk/clerk-sdk-node"
 
@@ -36,11 +36,11 @@ export const getAuthUserDetails = async () => {
 export const saveActivityLogsNotification = async ({
     garageId,
     description,
-    subaccountId,
+    subAccountId,
 }: {
     garageId?: string
     description: string
-    subaccountId?: string
+    subAccountId?: string
 }) => {
     const authUser = await currentUser()
     let userData;
@@ -49,7 +49,7 @@ export const saveActivityLogsNotification = async ({
             where: {
                 Garage: {
                     subAccount: {
-                        some: { id: subaccountId },
+                        some: { id: subAccountId },
                     },
                 },
             },
@@ -72,20 +72,20 @@ export const saveActivityLogsNotification = async ({
 
     let foundGarageId = garageId
     if(!foundGarageId){
-        if(!subaccountId){
+        if(!subAccountId){
             throw new Error(
                 'You need to provide atleast an Garage Id or subaccount Id'
             )
         }
 
         const response = await db.subAccount.findUnique({
-            where: { id: subaccountId },
+            where: { id: subAccountId },
         })
 
         if (response) foundGarageId = response.garageId
     }
 
-    if(subaccountId) {
+    if(subAccountId) {
         await db.notification.create({
             data: {
                 notification: `${userData.name} | ${description}`,
@@ -100,7 +100,7 @@ export const saveActivityLogsNotification = async ({
                     },
                 },
                 SubAccount: {
-                    connect: { id: subaccountId },
+                    connect: { id: subAccountId },
                 },
             },
         })
@@ -155,7 +155,7 @@ export const verifyAndAcceptInvitation = async () => {
         await saveActivityLogsNotification({
             garageId: invitationExists?.garageId,
             description: `Joined`,
-            subaccountId: undefined,
+            subAccountId: undefined,
         })
     
         if(userDetails) {
@@ -179,4 +179,12 @@ export const verifyAndAcceptInvitation = async () => {
         })
         return garage ? garage.garageId : null
     }
+}
+
+export const updateGarageDetails = async (garageId:string, garageDetails: Partial<Garage>) => {
+    const response = await db.garage.update({
+        where: { id: garageId },
+        data: { ...garageDetails },
+    })
+    return response
 }

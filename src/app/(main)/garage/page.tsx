@@ -36,7 +36,7 @@ const Page = async ({ searchParams }: { searchParams: { plan: Plan; state: strin
     return (
         <div className='flex justify-center items-center mt-4'>
             <div className="max-w-[850px] border-[1px] p-4 rounded-xl">
-                <h1 className="text-4xl">Create a Garage</h1>
+                <h1 className="text-4xl pb-4">Create a Garage</h1>
                 <GarageDetails data={{ companyEmail: authUser?.emailAddresses[0].emailAddress }}/>
             </div>
         </div>
