@@ -54,8 +54,15 @@ enum Icon {
   clipboardIcon
 }
 
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+}
+
 model User {
-  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
+  id                    String          @id @map("_id")
   name                  String
   email                 String          @unique
   avatarUrl             String          @db.String
@@ -84,9 +91,8 @@ model Permissions {
 }
 
 model Garage{
-  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
+  id                    String          @id @default(uuid()) @map("_id")
   connectAccountId      String?         @default("")
-  customerId            String          @default("")
   name                  String
   garageLogo            String          @db.String
   companyEmail          String          @db.String
@@ -138,6 +144,82 @@ model SubAccount {
   Notification          Notification[]
 
   @@index([garageId])
+}
+
+model Contact {
+  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String
+  firstName             String
+  lastName              String
+  phone                 String
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  vehicles              Vehicle[]
+  subAccountId          String         
+  SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  Ticket                Ticket[]
+
+  @@index([subAccountId])
+}
+
+model Vehicle {
+  id                      String            @id @default(auto()) @map("_id") @db.ObjectId
+  registrationNumber      String            @unique
+  make                    String
+  model                   String?
+  yearOfManufacture       Int?
+  fuelType                FuelType
+  colour                  String
+  engineCapacity          Int?
+  co2Emissions            Int?
+  revenueWeight           Int?
+  typeApproval            String?
+  wheelplan               String?
+  dateOfLastV5CIssued     DateTime?
+  markedForExport         Boolean?
+  taxStatus               String?
+  taxDueDate              DateTime?
+  motStatus               String?
+  motExpiryDate           DateTime?
+  monthOfFirstRegistration String?
+  manufactureDate         DateTime?
+  registrationDate        DateTime?
+  motRecords              MOTRecord[]
+  appointments            Appointment[]
+  contact                 Contact?          @relation(fields: [contactId], references: [id])
+  contactId               String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  motExpiredDays          Int?
+  createdDaysDifference   Int?
+  reminderSent            Boolean?          @default(false)
+  forceUpdate             Boolean?          @default(false)
+}
+
+model MOTRecord {
+  id                 String                 @id @default(auto()) @map("_id") @db.ObjectId
+  vehicle            Vehicle                @relation(fields: [vehicleId], references: [id])
+  vehicleId          String
+  completedDate      DateTime
+  testResult         String
+  expiryDate         DateTime
+  mileage            Int
+  notes              String?
+}
+
+model Appointment {
+  id                         String           @id @default(auto()) @map("_id") @db.ObjectId
+  vehicleId                  String
+  vehicle                    Vehicle          @relation(fields: [vehicleId], references: [id])
+  appointmentDateTime        DateTime
+  appointmentDateTimeLondon  DateTime?
+  appointmentTime            String?
+  rescheduleLink             String?
+  cancelLink                 String?
+  cancelled                  Boolean?         @default(false)
+  createdAt                  DateTime         @default(now())
+  updatedAt                  DateTime         @updatedAt
+  hoursDiff                  Int?
 }
 
 model Tag {
@@ -351,19 +433,6 @@ model Automation {
 
   @@index([subAccountId])
   @@index([triggerId])
-}
-
-model Contact {
-  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
-  name                  String
-  email                 String
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  subAccountId          String         
-  SubAccount            SubAccount      @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  Ticket                Ticket[]
-
-  @@index([subAccountId])
 }
 
 model AutomationInstance {
