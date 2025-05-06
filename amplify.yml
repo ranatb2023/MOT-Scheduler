@@ -1,0 +1,5 @@
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm install --legacy-peer-deps
