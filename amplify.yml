@@ -1,5 +1,16 @@
+version: 1
 frontend:
   phases:
     preBuild:
       commands:
-        - npm install --legacy-peer-deps
+        - npm install
+    build:
+      commands:
+        - npm run build --legacy-peer-deps
+  artifacts:
+    baseDirectory: out
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
