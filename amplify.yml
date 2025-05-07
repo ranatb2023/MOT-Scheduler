@@ -3,15 +3,18 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install @prisma/client prisma --legacy-peer-deps
+        - npm ci
         - npx prisma generate
     build:
       commands:
         - npm run build
+    postBuild:
+      commands:
+        - echo "Build complete"
   artifacts:
     baseDirectory: .next
     files:
-      - '*/'
+      - '**/*'
   cache:
     paths:
-      - node_modules/*/
+      - node_modules/**
