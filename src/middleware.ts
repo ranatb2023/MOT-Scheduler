@@ -1,12 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { secret } from "@aws-amplify/backend"; 
 
 const isPublicRoute = createRouteMatcher(['/site', '/api/uploadthing']);
 
 export default clerkMiddleware(
   {
-    secretKey: secret('CLERK_SECRET_KEY'),
+    secretKey: process.env.CLERK_SECRET_KEY,
   },
   async (auth, request) => {
     const url = request.nextUrl;
