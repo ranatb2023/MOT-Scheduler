@@ -8,13 +8,18 @@ export default clerkMiddleware(
     secretKey: process.env.CLERK_SECRET_KEY,
   },
   async (auth, request) => {
+    // Mus prevent crash on undefined request
+    if (!request?.nextUrl) {
+      console.warn('Request or request.nextUrl is undefined in middleware. Skipping...');
+      return NextResponse.next();
+    }
+
     const url = request.nextUrl;
     const searchParams = url.searchParams.toString();
     const hostname = request.headers;
 
     const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;
 
-    // If subdomain exists
     const customSubDomain = hostname
       .get('host')
       ?.split(`${process.env.NEXT_PUBLIC_DOMAIN}`)
